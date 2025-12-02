@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- Essential Meta Tags -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    
+    <!-- SEO Meta Tags -->
+    <title>Free Resume Maker | AI-Powered ATS-Optimized Resume Builder</title>
+    <meta name="description" content="Create ATS-optimized resumes in seconds with AI-powered content generation. Free professional resume maker with automatic job description matching and keyword optimization.">
+    <meta name="keywords" content="free resume maker, resume builder, AI resume maker, professional resume, job application, resume optimization, applicant tracking system, ATS resume generator, resume creator, career tools">
+    <meta name="author" content="Free Resume Maker">
+    <meta name="robots" content="index, follow">
+    <meta name="language" content="English">
+    <meta name="revisit-after" content="7 days">
+    
+    <!-- Open Graph Meta Tags (Facebook, LinkedIn) -->
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Free Resume Maker">
+    <meta property="og:title" content="Free Resume Maker - AI-Powered ATS-Optimized Resume Builder">
+    <meta property="og:description" content="Create ATS-optimized resumes with AI-powered content generation. Automatic job description matching and keyword optimization.">
+    <meta property="og:url" content="https://freeresumemake.com">
+    <meta property="og:locale" content="en_US">
+    
+    <!-- Twitter Card Meta Tags -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Free Resume Maker - AI-Powered ATS Resume Builder">
+    <meta name="twitter:description" content="Create ATS-optimized resumes in seconds with AI-powered content generation and automatic keyword matching.">
+    
+    <!-- Canonical URL -->
+    <link rel="canonical" href="https://freeresumemake.com">
+    
+    <!-- Favicon (add your favicon files) -->
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    
+    <!-- Stylesheet -->
+    <link rel="stylesheet" href="styles.css">
+    
+    <!-- Structured Data (JSON-LD) for SEO -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "Free Resume Maker",
+      "description": "Free AI-powered resume maker that creates ATS-optimized professional resumes with automatic content generation and keyword matching.",
+      "url": "https://freeresumemake.com",
+      "applicationCategory": "BusinessApplication",
+      "operatingSystem": "Any",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      },
+      "featureList": [
+        "AI-powered content generation",
+        "ATS optimization",
+        "Automatic keyword matching",
+        "Professional resume templates",
+        "Job description analysis",
+        "Multiple resume styles",
+        "PDF export"
+      ]
+    }
+    </script>
+</head>
+<body>
+    <!-- Contact Card (Top Right) -->
+    <div class="contact-card">
+        <div class="contact-card-header">👋 Nice to meet you!</div>
+        <div class="contact-card-body">
+            <p>If you're interested in software development or would like to advertise your product with me, please feel free to contact me:</p>
+            <div class="contact-links">
+                <a href="https://t.me/techtitan0209" target="_blank" rel="noopener noreferrer">
+                    <strong>Telegram:</strong> @techtitan0209
+                </a>
+                <a href="https://discord.com/users/turkijandev" target="_blank" rel="noopener noreferrer">
+                    <strong>Discord:</strong> turkijandev
+                </a>
+                <a href="mailto:turkijan083@gmail.com">
+                    <strong>Email:</strong> turkijan083@gmail.com
+                </a>
+            </div>
+        </div>
+        <button class="contact-card-close" onclick="this.parentElement.style.display='none'" aria-label="Close contact card">×</button>
+    </div>
+
+    <div class="container">
+        <!-- Main Header -->
+        <header role="banner">
+            <h1>Free Resume Maker</h1>
+            <p class="subtitle">Create professional, ATS-optimized resumes with AI-powered content generation</p>
+        </header>
+
+        <!-- Quick Actions Toolbar -->
+        <nav class="actions" role="navigation" aria-label="Resume actions">
+            <button id="loadDataBtn" class="btn btn-secondary" aria-label="Load previously saved resume data">Load Saved Data</button>
+            <button id="clearFormBtn" class="btn btn-secondary" aria-label="Clear all form fields">Clear Form</button>
+            <button id="showAllKeywordsBtn" class="btn btn-secondary" aria-label="View all available technical keywords">View All Keywords</button>
+            <button type="submit" form="resumeForm" class="btn btn-success" aria-label="Generate your ATS-optimized resume PDF">Generate ATS-Optimized Resume</button>
+        </nav>
+
+        <!-- All Keywords Section -->
+        <div id="allKeywordsSection" class="all-keywords-section" style="display: none;">
+            <div class="keywords-header">
+                <h2>Available Technical Skills & Keywords</h2>
+                <p>Our system recognizes <strong id="keywordCount">300+</strong> technical skills. Use these keywords in your resume for optimal ATS matching.</p>
+                <button id="closeKeywordsBtn" class="btn btn-danger">Close</button>
+            </div>
+            <div class="keywords-filter">
+                <input type="text" id="keywordSearch" placeholder="Search keywords..." />
+            </div>
+            <div id="allKeywordsContent" class="all-keywords-content">
+                <div class="loading">Loading keywords...</div>
+            </div>
+        </div>
+
+        <!-- Main Application Form -->
+        <main role="main">
+            <form id="resumeForm" aria-label="Resume builder form">
+                <!-- Job Description Section -->
+                <section class="form-section" aria-labelledby="job-description-heading">
+                    <h2 id="job-description-heading">📋 Job Description</h2>
+                    <p class="section-help">Paste the job description here. We'll analyze it and auto-generate your entire resume content.</p>
+                <div class="form-group">
+                    <label for="jobDescription">Job Description *</label>
+                    <textarea id="jobDescription" name="jobDescription" rows="8" required
+                        placeholder="Paste the full job description here..."></textarea>
+                    <button type="button" id="analyzeJobBtn" class="btn btn-primary">Analyze Job Description</button>
+                </div>
+                <div id="analysisResults" class="analysis-results" style="display: none;">
+                    <h3>Analysis Results</h3>
+                    <div id="analysisContent"></div>
+                </div>
+            </section>
+
+            <!-- Personal Information Section -->
+            <section class="form-section" aria-labelledby="personal-info-heading">
+                <h2 id="personal-info-heading">👤 Personal Information</h2>
+                <p class="section-help">Enter your basic contact details</p>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="name">Full Name *</label>
+                        <input type="text" id="name" name="name" required placeholder="Adrian Kowalewski">
+                    </div>
+                    <div class="form-group">
+                        <label for="email">Email *</label>
+                        <input type="email" id="email" name="email" required placeholder="kowalewskiadrian0502@gmail.com">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="phone">Phone Number *</label>
+                        <input type="tel" id="phone" name="phone" required placeholder="+44 7868 332982">
+                    </div>
+                    <div class="form-group">
+                        <label for="address">Address *</label>
+                        <input type="text" id="address" name="address" required 
+                            placeholder="134 Albert Road, Plymouth, UK">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="linkedin">LinkedIn Profile *</label>
+                    <input type="url" id="linkedin" name="linkedin" required
+                        placeholder="https://linkedin.com/in/yourprofile">
+                </div>
+            </section>
+
+            <!-- Work Experience Section -->
+            <section class="form-section" aria-labelledby="work-experience-heading">
+                <h2 id="work-experience-heading">💼 Work Experience</h2>
+                <p class="section-help">Enter company names and dates only. We'll auto-generate job titles and detailed descriptions based on the job description. Company 1 is your most recent (senior) position.</p>
+                
+                <div id="workExperienceContainer"></div>
+                
+                <button type="button" id="addCompanyBtn" class="btn btn-primary" style="margin-top: 15px;">
+                    + Add Company
+                </button>
+            </section>
+
+            <!-- Languages Section -->
+            <section class="form-section" aria-labelledby="languages-heading">
+                <h2 id="languages-heading">🌐 Languages</h2>
+                <p class="section-help">Enter languages and proficiency levels (default: English - Professional)</p>
+                <div class="form-group">
+                    <label for="languages">Languages (one per line)</label>
+                    <textarea id="languages" name="languages" rows="3" 
+                        placeholder="English (Professional)&#10;Spanish (Intermediate)&#10;French (Basic)">English (Professional)</textarea>
+                </div>
+            </section>
+
+            <!-- Education Section -->
+            <section class="form-section" aria-labelledby="education-heading">
+                <h2 id="education-heading">🎓 Education</h2>
+                <p class="section-help">Enter your education details. We'll format it professionally. You can add 0 to multiple education entries.</p>
+                
+                <div id="educationContainer"></div>
+                
+                <button type="button" id="addEducationBtn" class="btn btn-primary" style="margin-top: 15px;">
+                    + Add Education
+                </button>
+            </section>
+
+            <!-- Form Actions -->
+            <section class="form-actions">
+                <button type="button" id="saveDataBtn" class="btn btn-secondary" aria-label="Save your resume data for later">Save Data</button>
+            </section>
+        </form>
+        </main>
+
+        <!-- Footer with SEO Content -->
+        <footer role="contentinfo" style="margin-top: 40px; padding: 30px 0; border-top: 2px solid #e0e0e0; text-align: center; color: #666;">
+            <article>
+                <h2 style="font-size: 1.2em; margin-bottom: 15px; color: #667eea;">About Free Resume Maker</h2>
+                <p style="max-width: 800px; margin: 0 auto 15px; line-height: 1.8;">
+                    Our <strong>Free Resume Maker</strong> uses advanced AI technology to create professional, 
+                    <strong>ATS-optimized resumes</strong> tailored to your target job. Simply paste a job description, 
+                    and our intelligent system automatically generates compelling content, matches keywords, and optimizes 
+                    your resume for <strong>Applicant Tracking Systems</strong> (ATS). Perfect for job seekers looking to 
+                    stand out in competitive job markets.
+                </p>
+                <p style="max-width: 800px; margin: 0 auto 20px; line-height: 1.8;">
+                    <strong>Key Features:</strong> AI-powered content generation, automatic keyword optimization, 
+                    multiple professional resume styles, dynamic work experience management, ATS compatibility guaranteed, 
+                    and instant PDF download. No registration required - completely free to use.
+                </p>
+                <p style="font-size: 0.9em; color: #999; margin-top: 20px;">
+                    © 2025 Free Resume Maker. Built with AI-powered technology for job seekers worldwide.
+                </p>
+            </article>
+        </footer>
+
+        <!-- Message Box -->
+        <div id="messageBox" class="message-box" style="display: none;" role="alert" aria-live="polite"></div>
+
+        <!-- Loading Overlay -->
+        <div id="loadingOverlay" class="loading-overlay" style="display: none;" role="status" aria-live="polite">
+            <div class="spinner" aria-hidden="true"></div>
+            <p>Generating your ATS-optimized resume with professional content...</p>
+        </div>
+    </div>
+
+    <script src="app.js?v=20251104083000"></script>
+</body>
+</html>
