@@ -1,5 +1,9 @@
 // API Configuration
-const API_BASE_URL = 'http://localhost:5000/api';
+// Use relative URL for production (works with nginx reverse proxy)
+// Use localhost for local development
+const API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+    ? 'http://localhost:5000/api'
+    : '/api';
 
 // Version check
 console.log('🚀 App.js loaded - Version 20251104083000');

@@ -4,6 +4,11 @@ Main Flask application for ATS Resume Generator
 from flask import Flask, request, jsonify, send_file
 from flask_cors import CORS
 import os
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
+
 from services.data_service import DataService
 from services.ats_matcher import ATSMatcher
 from services.pdf_generator import PDFGenerator
@@ -11,7 +16,15 @@ from services.content_generator import ContentGenerator
 from datetime import datetime
 
 app = Flask(__name__)
-CORS(app)
+
+# Configure CORS for production (allow all origins, or specify your domain)
+CORS(app, resources={
+    r"/api/*": {
+        "origins": "*",
+        "methods": ["GET", "POST", "OPTIONS"],
+        "allow_headers": ["Content-Type"]
+    }
+})
 
 # Initialize services
 data_service = DataService()
@@ -132,6 +145,17 @@ if __name__ == '__main__':
     os.makedirs('data', exist_ok=True)
     os.makedirs('output', exist_ok=True)
     
-    # use_reloader=False to fix Windows socket issue
-    app.run(debug=True, host='0.0.0.0', port=5000, use_reloader=False)
+    # Get environment settings
+    flask_env = os.getenv('FLASK_ENV', 'development')
+    is_production = flask_env == 'production'
+    debug_mode = os.getenv('FLASK_DEBUG', 'True' if not is_production else 'False').lower() == 'true'
+    host = os.getenv('HOST', '0.0.0.0')
+    port = int(os.getenv('PORT', 5000))
+    
+    print(f"🔧 Environment: {flask_env}")
+    print(f"🔧 Debug Mode: {debug_mode}")
+    print(f"🔧 Host: {host}:{port}")
+    
+    # use_reloader=False to fix Windows socket issue and for production stability
+    app.run(debug=debug_mode, host=host, port=port, use_reloader=False)
 

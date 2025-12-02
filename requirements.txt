@@ -3,4 +3,5 @@ Flask-CORS==6.0.1
 reportlab==4.4.4
 python-dotenv==1.0.1
 openai==1.55.3
+gunicorn==21.2.0
 
