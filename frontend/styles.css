@@ -576,3 +576,315 @@ small {
     }
 }
 
+/* ============== USER STATUS BADGE ============== */
+.user-status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 16px;
+    border-radius: 25px;
+    font-size: 14px;
+    margin-top: 15px;
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(10px);
+}
+
+.user-status-badge.premium {
+    background: linear-gradient(135deg, #FFD700, #FFA500);
+    color: #333;
+}
+
+.user-status-badge.free {
+    background: rgba(255, 255, 255, 0.3);
+    color: #333;
+}
+
+.user-status-badge.locked {
+    background: rgba(255, 100, 100, 0.3);
+    color: #333;
+}
+
+.badge {
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.badge-premium {
+    background: #333;
+    color: #FFD700;
+}
+
+.badge-free {
+    background: #28a745;
+    color: white;
+}
+
+.badge-locked {
+    background: #dc3545;
+    color: white;
+}
+
+/* ============== MODAL STYLES ============== */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(5px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.modal-content {
+    background: white;
+    border-radius: 20px;
+    padding: 40px;
+    max-width: 500px;
+    width: 90%;
+    position: relative;
+    animation: slideUp 0.4s ease;
+    box-shadow: 0 25px 80px rgba(0, 0, 0, 0.3);
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(50px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.modal-close {
+    position: absolute;
+    top: 15px;
+    right: 20px;
+    background: none;
+    border: none;
+    font-size: 28px;
+    cursor: pointer;
+    color: #999;
+    transition: color 0.2s;
+}
+
+.modal-close:hover {
+    color: #333;
+}
+
+/* Email Modal */
+.email-modal {
+    text-align: center;
+}
+
+.email-modal h2 {
+    font-size: 28px;
+    margin-bottom: 15px;
+    color: #333;
+}
+
+.email-modal p {
+    color: #666;
+    margin-bottom: 25px;
+    font-size: 16px;
+}
+
+.email-modal input {
+    width: 100%;
+    padding: 15px 20px;
+    font-size: 16px;
+    border: 2px solid #e0e0e0;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    transition: border-color 0.3s;
+}
+
+.email-modal input:focus {
+    outline: none;
+    border-color: #667eea;
+}
+
+.modal-note {
+    font-size: 12px;
+    color: #999;
+    margin-top: 15px;
+}
+
+/* Payment Modal */
+.payment-modal {
+    text-align: center;
+}
+
+.payment-modal h2 {
+    font-size: 28px;
+    margin-bottom: 10px;
+    color: #333;
+}
+
+.payment-subtitle {
+    color: #666;
+    margin-bottom: 25px;
+    font-size: 16px;
+}
+
+.price-display {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 25px;
+    border-radius: 15px;
+    margin-bottom: 25px;
+}
+
+.price-amount {
+    font-size: 48px;
+    font-weight: 700;
+    display: block;
+}
+
+.price-label {
+    font-size: 14px;
+    opacity: 0.9;
+}
+
+.payment-benefits {
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 12px;
+    margin-bottom: 25px;
+    text-align: left;
+}
+
+.benefit {
+    padding: 8px 0;
+    color: #333;
+    font-size: 14px;
+}
+
+.benefit:not(:last-child) {
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.payment-methods h3 {
+    font-size: 16px;
+    color: #666;
+    margin-bottom: 15px;
+}
+
+.payment-btn {
+    width: 100%;
+    padding: 15px 20px;
+    border: 2px solid #e0e0e0;
+    border-radius: 10px;
+    background: white;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    font-size: 16px;
+    font-weight: 500;
+    margin-bottom: 12px;
+    transition: all 0.3s ease;
+}
+
+.payment-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+}
+
+.stripe-btn:hover {
+    border-color: #635bff;
+    background: #f0efff;
+}
+
+.paypal-btn:hover {
+    border-color: #003087;
+    background: #e6f0ff;
+}
+
+.crypto-btn:hover {
+    border-color: #f7931a;
+    background: #fff8e6;
+}
+
+.payment-icon {
+    font-size: 24px;
+}
+
+.payment-note {
+    font-size: 12px;
+    color: #999;
+    margin-top: 20px;
+}
+
+/* Success Modal */
+.success-modal {
+    text-align: center;
+}
+
+.success-icon {
+    font-size: 64px;
+    margin-bottom: 20px;
+}
+
+.success-modal h2 {
+    font-size: 28px;
+    color: #28a745;
+    margin-bottom: 15px;
+}
+
+.success-modal p {
+    color: #666;
+    margin-bottom: 10px;
+}
+
+.success-email {
+    background: #f8f9fa;
+    padding: 10px 20px;
+    border-radius: 8px;
+    margin: 20px 0;
+    font-size: 14px;
+}
+
+/* Button Sizes */
+.btn-large {
+    padding: 15px 40px;
+    font-size: 18px;
+}
+
+/* Mobile Responsive for Modals */
+@media (max-width: 768px) {
+    .modal-content {
+        padding: 30px 20px;
+        margin: 20px;
+    }
+    
+    .price-amount {
+        font-size: 36px;
+    }
+    
+    .payment-modal h2,
+    .email-modal h2,
+    .success-modal h2 {
+        font-size: 24px;
+    }
+    
+    .user-status-badge {
+        font-size: 12px;
+        padding: 6px 12px;
+    }
+}
+

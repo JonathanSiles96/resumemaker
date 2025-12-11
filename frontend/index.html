@@ -72,7 +72,7 @@
             <p>If you're interested in software development or would like to advertise your product with me, please feel free to contact me:</p>
             <div class="contact-links">
                 <a href="https://t.me/techtitan0209" target="_blank" rel="noopener noreferrer">
-                    <strong>Telegram:</strong> @techtitan0209
+                    <strong>Telegram:</strong> @techsuper0209
                 </a>
                 <a href="https://discord.com/users/turkijandev" target="_blank" rel="noopener noreferrer">
                     <strong>Discord:</strong> turkijandev
@@ -238,8 +238,77 @@
             <div class="spinner" aria-hidden="true"></div>
             <p>Generating your ATS-optimized resume with professional content...</p>
         </div>
+
+        <!-- Email Auth Modal -->
+        <div id="emailModal" class="modal" style="display: none;">
+            <div class="modal-content email-modal">
+                <h2>🚀 Get Started</h2>
+                <p>Enter your email to continue. Your first resume is <strong>FREE!</strong></p>
+                <div class="form-group">
+                    <input type="email" id="userEmail" placeholder="Enter your email address" required>
+                </div>
+                <button id="emailContinueBtn" class="btn btn-primary btn-large">Continue</button>
+                <p class="modal-note">We'll remember your email for future visits</p>
+            </div>
+        </div>
+
+        <!-- Payment Modal -->
+        <div id="paymentModal" class="modal" style="display: none;">
+            <div class="modal-content payment-modal">
+                <button class="modal-close" id="closePaymentModal">×</button>
+                <h2>💎 Unlock Unlimited Access</h2>
+                <p class="payment-subtitle">You've used your free resume. Get <strong>lifetime unlimited access</strong> for just:</p>
+                
+                <div class="price-display">
+                    <span class="price-amount">$25</span>
+                    <span class="price-label">One-time payment</span>
+                </div>
+                
+                <div class="payment-benefits">
+                    <div class="benefit">✓ Unlimited resume generations</div>
+                    <div class="benefit">✓ All resume styles</div>
+                    <div class="benefit">✓ Lifetime access - no subscription</div>
+                    <div class="benefit">✓ Priority AI processing</div>
+                </div>
+                
+                <div class="payment-methods">
+                    <h3>Choose Payment Method</h3>
+                    
+                    <button id="payStripeBtn" class="payment-btn stripe-btn">
+                        <span class="payment-icon">💳</span>
+                        <span class="payment-text">Pay with Card (Stripe)</span>
+                    </button>
+                    
+                    <button id="payPayPalBtn" class="payment-btn paypal-btn">
+                        <span class="payment-icon">🅿️</span>
+                        <span class="payment-text">Pay with PayPal</span>
+                    </button>
+                    
+                    <button id="payCryptoBtn" class="payment-btn crypto-btn">
+                        <span class="payment-icon">₿</span>
+                        <span class="payment-text">Pay with Crypto (USDT)</span>
+                    </button>
+                </div>
+                
+                <p class="payment-note">🔒 Secure payment processing. Instant activation.</p>
+            </div>
+        </div>
+
+        <!-- Payment Success Modal -->
+        <div id="paymentSuccessModal" class="modal" style="display: none;">
+            <div class="modal-content success-modal">
+                <div class="success-icon">🎉</div>
+                <h2>Payment Successful!</h2>
+                <p>You now have <strong>unlimited lifetime access</strong> to Resume Maker.</p>
+                <p class="success-email">Email: <span id="successEmail"></span></p>
+                <button id="closeSuccessModal" class="btn btn-primary btn-large">Start Creating Resumes</button>
+            </div>
+        </div>
     </div>
 
-    <script src="app.js?v=20251104083000"></script>
+    <!-- Stripe.js -->
+    <script src="https://js.stripe.com/v3/"></script>
+    
+    <script src="app.js?v=20251202payment"></script>
 </body>
 </html>

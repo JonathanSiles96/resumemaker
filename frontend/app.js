@@ -6,7 +6,7 @@ const API_BASE_URL = window.location.hostname === 'localhost' || window.location
     : '/api';
 
 // Version check
-console.log('🚀 App.js loaded - Version 20251104083000');
+console.log('🚀 App.js loaded - Version 20251202 (with payments)');
 
 // State management
 let workExperiences = [];
@@ -14,12 +14,401 @@ let educationEntries = [];
 let experienceCounter = 0;
 let educationCounter = 0;
 
+// User state
+let currentUser = {
+    email: null,
+    isPaid: false,
+    freeUsed: false,
+    canGenerate: true
+};
+
+// Payment config
+let paymentConfig = {
+    price: 25,
+    stripePublicKey: null,
+    paypalClientId: null,
+    providers: {}
+};
+
 // Initialize app when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
     initializeEventListeners();
     initializeDynamicSections();
-    loadSavedData();
+    loadPaymentConfig();
+    checkStoredUser();
+    handlePaymentRedirect();
+    trackPageView();
 });
+
+// ============== ANALYTICS ==============
+
+function trackPageView() {
+    try {
+        fetch(`${API_BASE_URL}/analytics/track`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                path: window.location.pathname,
+                referrer: document.referrer
+            })
+        }).catch(() => {}); // Silently fail
+    } catch (e) {}
+}
+
+function trackEvent(eventType, metadata = null) {
+    try {
+        fetch(`${API_BASE_URL}/analytics/event`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                event: eventType,
+                email: currentUser.email,
+                metadata: metadata
+            })
+        }).catch(() => {}); // Silently fail
+    } catch (e) {}
+}
+
+// ============== USER & PAYMENT FUNCTIONS ==============
+
+async function loadPaymentConfig() {
+    try {
+        const response = await fetch(`${API_BASE_URL}/payment/config`);
+        const result = await response.json();
+        if (result.success) {
+            paymentConfig = {
+                price: result.price,
+                stripePublicKey: result.providers.stripe?.public_key,
+                paypalClientId: result.providers.paypal?.client_id,
+                providers: result.providers
+            };
+            console.log('Payment config loaded:', paymentConfig);
+        }
+    } catch (error) {
+        console.log('Payment config not available:', error);
+    }
+}
+
+function checkStoredUser() {
+    const storedEmail = localStorage.getItem('resumemaker_email');
+    if (storedEmail) {
+        currentUser.email = storedEmail;
+        checkUserStatus(storedEmail);
+    } else {
+        // Show email modal for new users
+        showEmailModal();
+    }
+}
+
+async function checkUserStatus(email) {
+    try {
+        const response = await fetch(`${API_BASE_URL}/user/status`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email })
+        });
+        
+        const result = await response.json();
+        if (result.success) {
+            currentUser = {
+                email: email,
+                isPaid: result.user.is_paid,
+                freeUsed: result.user.free_used,
+                canGenerate: result.user.can_generate
+            };
+            
+            updateUserStatusDisplay();
+            
+            if (currentUser.isPaid) {
+                console.log('✓ Paid user - unlimited access');
+            } else if (!currentUser.freeUsed) {
+                console.log('✓ New user - free generation available');
+            } else {
+                console.log('⚠ Free used - payment required');
+            }
+        }
+    } catch (error) {
+        console.log('Error checking user status:', error);
+    }
+}
+
+function updateUserStatusDisplay() {
+    // Update UI to show user status
+    let statusBadge = document.getElementById('userStatusBadge');
+    if (!statusBadge) {
+        statusBadge = document.createElement('div');
+        statusBadge.id = 'userStatusBadge';
+        statusBadge.className = 'user-status-badge';
+        const header = document.querySelector('header');
+        if (header) header.appendChild(statusBadge);
+    }
+    
+    if (currentUser.isPaid) {
+        statusBadge.innerHTML = `<span class="badge badge-premium">💎 Premium</span> ${currentUser.email}`;
+        statusBadge.className = 'user-status-badge premium';
+    } else if (!currentUser.freeUsed) {
+        statusBadge.innerHTML = `<span class="badge badge-free">🆓 Free Trial</span> ${currentUser.email}`;
+        statusBadge.className = 'user-status-badge free';
+    } else {
+        statusBadge.innerHTML = `<span class="badge badge-locked">🔒 Upgrade Required</span> ${currentUser.email}`;
+        statusBadge.className = 'user-status-badge locked';
+    }
+}
+
+function showEmailModal() {
+    document.getElementById('emailModal').style.display = 'flex';
+}
+
+function hideEmailModal() {
+    document.getElementById('emailModal').style.display = 'none';
+}
+
+function showPaymentModal() {
+    document.getElementById('paymentModal').style.display = 'flex';
+}
+
+function hidePaymentModal() {
+    document.getElementById('paymentModal').style.display = 'none';
+}
+
+function showPaymentSuccessModal(email) {
+    document.getElementById('successEmail').textContent = email;
+    document.getElementById('paymentSuccessModal').style.display = 'flex';
+}
+
+function hidePaymentSuccessModal() {
+    document.getElementById('paymentSuccessModal').style.display = 'none';
+}
+
+async function handleEmailSubmit() {
+    const emailInput = document.getElementById('userEmail');
+    const email = emailInput.value.trim().toLowerCase();
+    
+    if (!email || !email.includes('@')) {
+        showMessage('Please enter a valid email address', 'error');
+        return;
+    }
+    
+    try {
+        const response = await fetch(`${API_BASE_URL}/user/register`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email })
+        });
+        
+        const result = await response.json();
+        if (result.success) {
+            currentUser = {
+                email: email,
+                isPaid: result.user.is_paid,
+                freeUsed: result.user.free_used,
+                canGenerate: result.user.can_generate
+            };
+            
+            localStorage.setItem('resumemaker_email', email);
+            hideEmailModal();
+            updateUserStatusDisplay();
+            loadSavedData();
+            
+            if (currentUser.isPaid) {
+                showMessage('Welcome back! You have unlimited access.', 'success');
+            } else if (!currentUser.freeUsed) {
+                showMessage('Welcome! Your first resume is FREE!', 'success');
+            } else {
+                showMessage('Welcome back! Upgrade for unlimited access.', 'info');
+                showPaymentModal();
+            }
+        } else {
+            showMessage(result.error || 'Error registering', 'error');
+        }
+    } catch (error) {
+        showMessage('Error connecting to server', 'error');
+    }
+}
+
+// ============== PAYMENT HANDLERS ==============
+
+async function handleStripePayment() {
+    if (!currentUser.email) {
+        showEmailModal();
+        return;
+    }
+    
+    trackEvent('payment_started', { provider: 'stripe' });
+    
+    try {
+        showMessage('Redirecting to Stripe...', 'info');
+        
+        const response = await fetch(`${API_BASE_URL}/payment/stripe/create-session`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: currentUser.email })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            // Redirect to Stripe Checkout
+            if (result.checkout_url) {
+                window.location.href = result.checkout_url;
+            } else if (paymentConfig.stripePublicKey && result.session_id) {
+                const stripe = Stripe(paymentConfig.stripePublicKey);
+                await stripe.redirectToCheckout({ sessionId: result.session_id });
+            }
+        } else {
+            showMessage(result.error || 'Payment error', 'error');
+        }
+    } catch (error) {
+        showMessage('Error initiating payment: ' + error.message, 'error');
+    }
+}
+
+async function handlePayPalPayment() {
+    if (!currentUser.email) {
+        showEmailModal();
+        return;
+    }
+    
+    trackEvent('payment_started', { provider: 'paypal' });
+    
+    try {
+        showMessage('Redirecting to PayPal...', 'info');
+        
+        const response = await fetch(`${API_BASE_URL}/payment/paypal/create-order`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: currentUser.email })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success && result.approval_url) {
+            window.location.href = result.approval_url;
+        } else {
+            showMessage(result.error || 'PayPal error', 'error');
+        }
+    } catch (error) {
+        showMessage('Error initiating payment: ' + error.message, 'error');
+    }
+}
+
+async function handleCryptoPayment() {
+    if (!currentUser.email) {
+        showEmailModal();
+        return;
+    }
+    
+    trackEvent('payment_started', { provider: 'coingate' });
+    
+    try {
+        showMessage('Creating crypto payment...', 'info');
+        
+        const response = await fetch(`${API_BASE_URL}/payment/coingate/create-order`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: currentUser.email })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success && result.payment_url) {
+            window.location.href = result.payment_url;
+        } else {
+            showMessage(result.error || 'Crypto payment error', 'error');
+        }
+    } catch (error) {
+        showMessage('Error initiating payment: ' + error.message, 'error');
+    }
+}
+
+function handlePaymentRedirect() {
+    const urlParams = new URLSearchParams(window.location.search);
+    
+    // Handle Stripe redirect
+    const sessionId = urlParams.get('session_id');
+    if (sessionId) {
+        verifyStripePayment(sessionId);
+        return;
+    }
+    
+    // Handle PayPal redirect
+    const provider = urlParams.get('provider');
+    const token = urlParams.get('token');
+    if (provider === 'paypal' && token) {
+        capturePayPalPayment(token);
+        return;
+    }
+    
+    // Handle CoinGate redirect
+    if (provider === 'coingate') {
+        // CoinGate uses webhooks, just refresh user status
+        if (currentUser.email) {
+            checkUserStatus(currentUser.email);
+            showMessage('Checking payment status...', 'info');
+        }
+    }
+    
+    // Clear URL params
+    if (urlParams.has('session_id') || urlParams.has('provider') || urlParams.has('token')) {
+        window.history.replaceState({}, document.title, window.location.pathname);
+    }
+}
+
+async function verifyStripePayment(sessionId) {
+    try {
+        const response = await fetch(`${API_BASE_URL}/payment/stripe/verify`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ session_id: sessionId })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success && result.paid) {
+            currentUser.isPaid = true;
+            currentUser.canGenerate = true;
+            localStorage.setItem('resumemaker_email', result.email || currentUser.email);
+            updateUserStatusDisplay();
+            showPaymentSuccessModal(result.email || currentUser.email);
+        } else {
+            showMessage('Payment verification failed. Please contact support.', 'error');
+        }
+    } catch (error) {
+        showMessage('Error verifying payment', 'error');
+    }
+    
+    // Clear URL
+    window.history.replaceState({}, document.title, window.location.pathname);
+}
+
+async function capturePayPalPayment(token) {
+    try {
+        // Get order ID from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        
+        const response = await fetch(`${API_BASE_URL}/payment/paypal/capture-order`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ order_id: token })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success && result.paid) {
+            currentUser.isPaid = true;
+            currentUser.canGenerate = true;
+            updateUserStatusDisplay();
+            showPaymentSuccessModal(result.email || currentUser.email);
+        } else {
+            showMessage('PayPal payment capture failed', 'error');
+        }
+    } catch (error) {
+        showMessage('Error capturing payment', 'error');
+    }
+    
+    // Clear URL
+    window.history.replaceState({}, document.title, window.location.pathname);
+}
 
 // Event Listeners
 function initializeEventListeners() {
@@ -42,6 +431,33 @@ function initializeEventListeners() {
     // Dynamic sections
     document.getElementById('addCompanyBtn').addEventListener('click', addCompany);
     document.getElementById('addEducationBtn').addEventListener('click', addEducation);
+    
+    // Email modal
+    document.getElementById('emailContinueBtn').addEventListener('click', handleEmailSubmit);
+    document.getElementById('userEmail').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') handleEmailSubmit();
+    });
+    
+    // Payment modal
+    document.getElementById('closePaymentModal').addEventListener('click', hidePaymentModal);
+    document.getElementById('payStripeBtn').addEventListener('click', handleStripePayment);
+    document.getElementById('payPayPalBtn').addEventListener('click', handlePayPalPayment);
+    document.getElementById('payCryptoBtn').addEventListener('click', handleCryptoPayment);
+    
+    // Success modal
+    document.getElementById('closeSuccessModal').addEventListener('click', () => {
+        hidePaymentSuccessModal();
+        hidePaymentModal();
+    });
+    
+    // Close modals on outside click
+    document.querySelectorAll('.modal').forEach(modal => {
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                modal.style.display = 'none';
+            }
+        });
+    });
 }
 
 // Initialize dynamic sections with default data
@@ -229,6 +645,7 @@ async function analyzeJobDescription() {
         if (result.success) {
             displayAnalysisResults(result);
             showMessage('Job description analyzed successfully!', 'success');
+            trackEvent('job_analyzed');
         } else {
             showMessage('Error analyzing job description: ' + result.error, 'error');
         }
@@ -346,6 +763,18 @@ function collectFormData() {
 async function handleFormSubmit(e) {
     e.preventDefault();
     
+    // Check if user is logged in
+    if (!currentUser.email) {
+        showEmailModal();
+        return;
+    }
+    
+    // Check if user can generate
+    if (!currentUser.canGenerate && !currentUser.isPaid && currentUser.freeUsed) {
+        showPaymentModal();
+        return;
+    }
+    
     // Find the submit button (it might be outside the form now)
     let submitBtn = null;
     try {
@@ -374,7 +803,8 @@ async function handleFormSubmit(e) {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 user_data: userData,
-                job_description: userData.job_description
+                job_description: userData.job_description,
+                email: currentUser.email  // Include user email for access control
             })
         });
         
@@ -390,8 +820,28 @@ async function handleFormSubmit(e) {
             document.body.removeChild(a);
             
             showMessage('Resume generated successfully! Check your downloads.', 'success');
+            
+            // Track successful generation
+            trackEvent('resume_generated');
+            
+            // Update user status after generation
+            if (!currentUser.isPaid) {
+                currentUser.freeUsed = true;
+                currentUser.canGenerate = false;
+                updateUserStatusDisplay();
+            }
         } else {
             const error = await response.json();
+            
+            // Check if payment is required
+            if (response.status === 402 || error.needs_payment) {
+                currentUser.freeUsed = true;
+                currentUser.canGenerate = false;
+                updateUserStatusDisplay();
+                showPaymentModal();
+                return;
+            }
+            
             showMessage('Error generating resume: ' + (error.error || 'Unknown error'), 'error');
         }
     } catch (error) {

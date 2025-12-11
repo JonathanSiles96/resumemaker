@@ -1,5 +1,6 @@
 """
 Main Flask application for ATS Resume Generator
+With Payment System Integration
 """
 from flask import Flask, request, jsonify, send_file
 from flask_cors import CORS
@@ -26,6 +27,16 @@ CORS(app, resources={
     }
 })
 
+# Initialize database
+from models import init_db, User, Payment
+init_db(app)
+
+# Register blueprints (routes)
+from routes import payment_bp, user_bp, analytics_bp
+app.register_blueprint(payment_bp)
+app.register_blueprint(user_bp)
+app.register_blueprint(analytics_bp)
+
 # Initialize services
 data_service = DataService()
 ats_matcher = ATSMatcher()
@@ -37,6 +48,7 @@ print("🤖 AI-POWERED RESUME GENERATOR")
 print("=" * 60)
 print("✓ DeepSeek AI integration enabled")
 print("✓ Content will be generated based on job descriptions")
+print("✓ Payment system initialized")
 print("=" * 60)
 
 @app.route('/api/health', methods=['GET'])
@@ -102,10 +114,32 @@ def generate_resume():
         data = request.json
         job_description = data.get('job_description', '')
         user_data = data.get('user_data', {})
+        user_email = data.get('email', '').strip().lower()
+        
+        # Check user access
+        if not user_email:
+            return jsonify({
+                'success': False,
+                'error': 'Email is required',
+                'needs_email': True
+            }), 400
+        
+        # Get or create user
+        user = User.get_or_create(user_email)
+        
+        # Check if user can generate
+        if not user.can_generate():
+            return jsonify({
+                'success': False,
+                'error': 'Payment required for unlimited access',
+                'needs_payment': True,
+                'price': 25.00
+            }), 402  # 402 Payment Required
         
         print("\n" + "=" * 60)
         print("🔄 GENERATING RESUME WITH AI")
         print("=" * 60)
+        print(f"User: {user_email} (Paid: {user.is_paid}, Free Used: {user.free_used})")
         print(f"Job Description Length: {len(job_description)} characters")
         print(f"Job Description Preview: {job_description[:200]}...")
         print(f"Companies: {[exp.get('company') for exp in user_data.get('work_experience', [])]}")
@@ -126,6 +160,19 @@ def generate_resume():
         pdf_path = pdf_generator.generate_pdf(complete_resume_data)
         print(f"✅ PDF created: {pdf_path}")
         print("=" * 60 + "\n")
+        
+        # Mark usage AFTER successful generation
+        if not user.is_paid:
+            # This is their free generation
+            user.mark_free_used()
+            print(f"📝 Free generation used for {user_email}")
+        else:
+            # Increment generation count for paid users
+            user.increment_generations()
+        
+        # Track event for analytics
+        from models.analytics import UsageEvent
+        UsageEvent.log_event('resume_generated', user_email=user_email)
         
         # Return the PDF file
         return send_file(
@@ -158,4 +205,3 @@ if __name__ == '__main__':
     
     # use_reloader=False to fix Windows socket issue and for production stability
     app.run(debug=debug_mode, host=host, port=port, use_reloader=False)
-

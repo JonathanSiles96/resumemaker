@@ -15,7 +15,7 @@ class AIContentGenerator:
     """Uses DeepSeek API to generate highly relevant resume content"""
     
     def __init__(self, api_key: str = None):
-        self.api_key = api_key or os.getenv('DEEPSEEK_API_KEY', 'sk-967e5a68e75f428583289da0603d1e65')
+        self.api_key = api_key or os.getenv('DEEPSEEK_API_KEY', 'sk-7169c5b77a904b539902f117a55abf01')
         # DeepSeek API is OpenAI-compatible, just needs a different base URL
         self.client = OpenAI(
             api_key=self.api_key,

@@ -28,7 +28,7 @@ The Resume Generator application has been migrated from OpenAI (ChatGPT) to Deep
 ### API Key
 The DeepSeek API key is configured in the `AIContentGenerator` class:
 ```python
-self.api_key = api_key or os.getenv('DEEPSEEK_API_KEY', 'sk-967e5a68e75f428583289da0603d1e65')
+self.api_key = api_key or os.getenv('DEEPSEEK_API_KEY', 'sk-7169c5b77a904b539902f117a55abf01')
 ```
 
 ### Client Configuration
