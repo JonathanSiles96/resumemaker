@@ -83,7 +83,7 @@ def get_stats():
         # Get user stats
         total_users = User.query.count()
         paid_users = User.query.filter_by(is_paid=True).count()
-        free_users_converted = User.query.filter_by(free_used=True, is_paid=False).count()
+        free_users_converted = User.query.filter(User.free_generations_used > 0, User.is_paid == False).count()
         
         # Get payment stats
         total_revenue = db.session.query(

@@ -58,7 +58,8 @@ def get_user_status():
                 'user': {
                     'email': email,
                     'is_paid': False,
-                    'free_used': False,
+                    'free_generations_used': 0,
+                    'free_generations_remaining': 3,
                     'can_generate': True,
                     'total_generations': 0,
                     'needs_payment': False,
@@ -99,13 +100,14 @@ def check_access():
         user = User.get_by_email(email)
         
         if not user:
-            # New user - can use free generation
+            # New user - can use free generation (3 tries available)
             return jsonify({
                 'success': True,
                 'can_generate': True,
                 'is_paid': False,
                 'is_free': True,
-                'message': 'First generation is free!'
+                'free_tries_remaining': 3,
+                'message': 'You have 3 free generations!'
             })
         
         if user.is_paid:
@@ -117,21 +119,24 @@ def check_access():
                 'message': 'Lifetime access active'
             })
         
-        if not user.free_used:
+        remaining = user.get_remaining_free_tries()
+        if remaining > 0:
             return jsonify({
                 'success': True,
                 'can_generate': True,
                 'is_paid': False,
                 'is_free': True,
-                'message': 'First generation is free!'
+                'free_tries_remaining': remaining,
+                'message': f'You have {remaining} free generation{"s" if remaining > 1 else ""} left!'
             })
         
-        # User has used free generation and hasn't paid
+        # User has used all free generations and hasn't paid
         return jsonify({
             'success': True,
             'can_generate': False,
             'is_paid': False,
             'is_free': False,
+            'free_tries_remaining': 0,
             'needs_payment': True,
             'message': 'Payment required for unlimited access'
         })

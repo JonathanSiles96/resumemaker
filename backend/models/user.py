@@ -15,8 +15,11 @@ class User(db.Model):
     is_paid = db.Column(db.Boolean, default=False, nullable=False)
     
     # Usage tracking
-    free_used = db.Column(db.Boolean, default=False, nullable=False)
+    free_generations_used = db.Column(db.Integer, default=0, nullable=False)  # Track number of free generations used
     total_generations = db.Column(db.Integer, default=0, nullable=False)
+    
+    # Free tier limit
+    FREE_GENERATION_LIMIT = 3  # Users get 3 free tries
     
     # Timestamps
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
@@ -34,25 +37,32 @@ class User(db.Model):
         # Paid users can always generate
         if self.is_paid:
             return True
-        # Free users can generate once
-        if not self.free_used:
+        # Free users can generate up to FREE_GENERATION_LIMIT times
+        if self.free_generations_used < self.FREE_GENERATION_LIMIT:
             return True
         return False
+    
+    def get_remaining_free_tries(self):
+        """Get number of remaining free generations"""
+        if self.is_paid:
+            return -1  # Unlimited for paid users
+        return max(0, self.FREE_GENERATION_LIMIT - self.free_generations_used)
     
     def get_status(self):
         """Get user status for API response"""
         return {
             'email': self.email,
             'is_paid': self.is_paid,
-            'free_used': self.free_used,
+            'free_generations_used': self.free_generations_used,
+            'free_generations_remaining': self.get_remaining_free_tries(),
             'can_generate': self.can_generate(),
             'total_generations': self.total_generations,
-            'needs_payment': self.free_used and not self.is_paid
+            'needs_payment': self.free_generations_used >= self.FREE_GENERATION_LIMIT and not self.is_paid
         }
     
     def mark_free_used(self):
-        """Mark that the user has used their free generation"""
-        self.free_used = True
+        """Mark that the user has used one of their free generations"""
+        self.free_generations_used += 1
         self.total_generations += 1
         db.session.commit()
     

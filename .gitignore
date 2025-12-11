@@ -29,7 +29,6 @@ output/
 *.pdf
 
 # IDE
-.vscode/
 .idea/
 *.swp
 *.swo
@@ -46,3 +45,7 @@ Thumbs.db
 .env
 .env.local
 
+branch_structure.json
+temp_auto_push.bat
+temp_interactive_push.bat
+.gitignore
