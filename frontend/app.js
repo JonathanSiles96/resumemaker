@@ -18,7 +18,7 @@ let educationCounter = 0;
 let currentUser = {
     email: null,
     isPaid: false,
-    freeUsed: false,
+    freeTriesRemaining: 3,
     canGenerate: true
 };
 
@@ -113,7 +113,7 @@ async function checkUserStatus(email) {
             currentUser = {
                 email: email,
                 isPaid: result.user.is_paid,
-                freeUsed: result.user.free_used,
+                freeTriesRemaining: result.user.free_generations_remaining || 3,
                 canGenerate: result.user.can_generate
             };
             
@@ -121,10 +121,10 @@ async function checkUserStatus(email) {
             
             if (currentUser.isPaid) {
                 console.log('✓ Paid user - unlimited access');
-            } else if (!currentUser.freeUsed) {
-                console.log('✓ New user - free generation available');
+            } else if (currentUser.freeTriesRemaining > 0) {
+                console.log(`✓ Free user - ${currentUser.freeTriesRemaining} generations remaining`);
             } else {
-                console.log('⚠ Free used - payment required');
+                console.log('⚠ Free tries used - payment required');
             }
         }
     } catch (error) {
@@ -146,8 +146,8 @@ function updateUserStatusDisplay() {
     if (currentUser.isPaid) {
         statusBadge.innerHTML = `<span class="badge badge-premium">💎 Premium</span> ${currentUser.email}`;
         statusBadge.className = 'user-status-badge premium';
-    } else if (!currentUser.freeUsed) {
-        statusBadge.innerHTML = `<span class="badge badge-free">🆓 Free Trial</span> ${currentUser.email}`;
+    } else if (currentUser.freeTriesRemaining > 0) {
+        statusBadge.innerHTML = `<span class="badge badge-free">🆓 Free (${currentUser.freeTriesRemaining} left)</span> ${currentUser.email}`;
         statusBadge.className = 'user-status-badge free';
     } else {
         statusBadge.innerHTML = `<span class="badge badge-locked">🔒 Upgrade Required</span> ${currentUser.email}`;
@@ -201,7 +201,7 @@ async function handleEmailSubmit() {
             currentUser = {
                 email: email,
                 isPaid: result.user.is_paid,
-                freeUsed: result.user.free_used,
+                freeTriesRemaining: result.user.free_generations_remaining || 3,
                 canGenerate: result.user.can_generate
             };
             
@@ -212,8 +212,8 @@ async function handleEmailSubmit() {
             
             if (currentUser.isPaid) {
                 showMessage('Welcome back! You have unlimited access.', 'success');
-            } else if (!currentUser.freeUsed) {
-                showMessage('Welcome! Your first resume is FREE!', 'success');
+            } else if (currentUser.freeTriesRemaining > 0) {
+                showMessage(`Welcome! You have ${currentUser.freeTriesRemaining} free resume${currentUser.freeTriesRemaining > 1 ? 's' : ''} available!`, 'success');
             } else {
                 showMessage('Welcome back! Upgrade for unlimited access.', 'info');
                 showPaymentModal();
@@ -770,7 +770,7 @@ async function handleFormSubmit(e) {
     }
     
     // Check if user can generate
-    if (!currentUser.canGenerate && !currentUser.isPaid && currentUser.freeUsed) {
+    if (!currentUser.canGenerate && !currentUser.isPaid && currentUser.freeTriesRemaining <= 0) {
         showPaymentModal();
         return;
     }
@@ -826,8 +826,8 @@ async function handleFormSubmit(e) {
             
             // Update user status after generation
             if (!currentUser.isPaid) {
-                currentUser.freeUsed = true;
-                currentUser.canGenerate = false;
+                currentUser.freeTriesRemaining = Math.max(0, currentUser.freeTriesRemaining - 1);
+                currentUser.canGenerate = currentUser.freeTriesRemaining > 0;
                 updateUserStatusDisplay();
             }
         } else {
@@ -835,7 +835,7 @@ async function handleFormSubmit(e) {
             
             // Check if payment is required
             if (response.status === 402 || error.needs_payment) {
-                currentUser.freeUsed = true;
+                currentUser.freeTriesRemaining = 0;
                 currentUser.canGenerate = false;
                 updateUserStatusDisplay();
                 showPaymentModal();

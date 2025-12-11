@@ -139,7 +139,7 @@ def generate_resume():
         print("\n" + "=" * 60)
         print("🔄 GENERATING RESUME WITH AI")
         print("=" * 60)
-        print(f"User: {user_email} (Paid: {user.is_paid}, Free Used: {user.free_used})")
+        print(f"User: {user_email} (Paid: {user.is_paid}, Free Used: {user.free_generations_used}/3)")
         print(f"Job Description Length: {len(job_description)} characters")
         print(f"Job Description Preview: {job_description[:200]}...")
         print(f"Companies: {[exp.get('company') for exp in user_data.get('work_experience', [])]}")
@@ -163,9 +163,10 @@ def generate_resume():
         
         # Mark usage AFTER successful generation
         if not user.is_paid:
-            # This is their free generation
+            # This is one of their free generations
             user.mark_free_used()
-            print(f"📝 Free generation used for {user_email}")
+            remaining = user.get_remaining_free_tries()
+            print(f"📝 Free generation used for {user_email} ({remaining} remaining)")
         else:
             # Increment generation count for paid users
             user.increment_generations()
