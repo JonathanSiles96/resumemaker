@@ -54,7 +54,7 @@ def track_event():
         UsageEvent.log_event(
             event_type=data.get('event', 'unknown'),
             user_email=data.get('email'),
-            metadata=data.get('metadata')
+            event_metadata=data.get('metadata')
         )
         
         return jsonify({'success': True})

@@ -79,17 +79,17 @@ class UsageEvent(db.Model):
     event_type = db.Column(db.String(50), nullable=False)
     # Event types: 'resume_generated', 'job_analyzed', 'payment_started', 'payment_completed'
     user_email = db.Column(db.String(255), nullable=True)
-    metadata = db.Column(db.Text, nullable=True)  # JSON string for extra data
+    event_metadata = db.Column(db.Text, nullable=True)  # JSON string for extra data
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
     
     @classmethod
-    def log_event(cls, event_type, user_email=None, metadata=None):
+    def log_event(cls, event_type, user_email=None, event_metadata=None):
         """Log a usage event"""
         import json
         event = cls(
             event_type=event_type,
             user_email=user_email,
-            metadata=json.dumps(metadata) if metadata else None
+            event_metadata=json.dumps(event_metadata) if event_metadata else None
         )
         db.session.add(event)
         db.session.commit()
